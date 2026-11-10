@@ -1,16 +1,16 @@
-
 (function () {
   /* ================= CONFIG ================= */
 
-  const RECEIVER_EMAIL = "mabanoub826@gmail.com";
-  const EMAIL_SUBJECT = "New registration – 50 years event";
+  // Google Apps Script web app. The recipients and subject are set inside the script.
+  const ENDPOINT =
+    "https://script.google.com/macros/s/AKfycbx8M-SBsIYz8CqscadariNzAgbHA9ZXOYvcsX8eZBJxSTm9g7fSpi7-anPI4mIObXwC6A/exec";
+
+  const SEND_TIMEOUT_MS = 30000;
 
   // November 29, 2026, 12:00 PM Cairo winter time (UTC+2)
+  // Only needed if you bring the countdown back.
   const EVENT_START = "2026-11-29T12:00:00+02:00";
-
   const EVENT_TIMESTAMP = new Date(EVENT_START).getTime();
-  const ENDPOINT =
-    "https://formsubmit.co/ajax/" + encodeURIComponent(RECEIVER_EMAIL);
 
   /* ================= TRANSLATIONS ================= */
 
@@ -23,7 +23,7 @@
       place: "Triumph hotel",
       dateText: "Sunday, November 29, 2026",
       timeText: "12:00 PM (Cairo Time)",
-      startsIn: " starts in",
+      startsIn: "Event starts in",
       days: "Days",
       hours: "Hours",
       minutes: "Minutes",
@@ -42,14 +42,10 @@
       errName: "Please enter your full name.",
       errEmail: "Please enter a valid email.",
       errPhone: "Please enter your phone number.",
+      errPhoneInvalid:
+        "Please enter a valid phone number (digits only, 8 to 15 digits).",
       successMsg: "Thank you! Your registration has been sent.",
-      failMsg: "Something went wrong. Please try again.",
-      // inside en: { ... }
-errPhone: "Please enter your phone number.",
-errPhoneInvalid: "Please enter a valid phone number (digits only, 8 to 15 digits)."
-
-// inside ar: { ... }
-
+      failMsg: "Something went wrong. Please try again."
     },
 
     ar: {
@@ -57,8 +53,8 @@ errPhoneInvalid: "Please enter a valid phone number (digits only, 8 to 15 digits
       dir: "rtl",
       switchLabel: "English",
       title: "٥٠ عامًا",
-      place: "فندق ترامب",
-      dateText: "الاحد، ٢٩ نوفمبر ٢٠٢٦",
+      place: "فندق تريومف",
+      dateText: "الأحد، ٢٩ نوفمبر ٢٠٢٦",
       timeText: "١٢:٠٠ ظهرًا (بتوقيت القاهرة)",
       startsIn: "يبدأ الحدث بعد",
       days: "يوم",
@@ -79,16 +75,51 @@ errPhoneInvalid: "Please enter a valid phone number (digits only, 8 to 15 digits
       errName: "يرجى إدخال اسمك الكامل.",
       errEmail: "يرجى إدخال بريد إلكتروني صحيح.",
       errPhone: "يرجى إدخال رقم هاتفك.",
+      errPhoneInvalid:
+        "يرجى إدخال رقم هاتف صحيح (أرقام فقط، من ٨ إلى ١٥ رقمًا).",
       successMsg: "شكرًا لك! تم إرسال تسجيلك.",
-      failMsg: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
-      errPhone: "يرجى إدخال رقم هاتفك.",
-errPhoneInvalid: "يرجى إدخال رقم هاتف صحيح (أرقام فقط، من ٨ إلى ١٥ رقمًا)."
+      failMsg: "حدث خطأ ما. يرجى المحاولة مرة أخرى."
     }
   };
 
   let currentLang = "en";
 
   const $ = (id) => document.getElementById(id);
+
+  // Safe setter: a missing element in the HTML will not break the whole script
+  const setText = (id, text) => {
+    const el = $(id);
+    if (el) el.textContent = text;
+  };
+
+  /* ================= STATUS / ERROR STATE ================= */
+  // Stored as translation keys so they re-translate when the language changes
+
+  const errorKeys = { name: null, email: null, phone: null };
+  let statusState = null; // { key: "successMsg" | "failMsg", type: "success" | "error" }
+
+  function renderErrors() {
+    const t = translations[currentLang];
+    setText("errName", errorKeys.name ? t[errorKeys.name] : "");
+    setText("errEmail", errorKeys.email ? t[errorKeys.email] : "");
+    setText("errPhone", errorKeys.phone ? t[errorKeys.phone] : "");
+  }
+
+  function renderStatus() {
+    const box = $("formStatus");
+    if (!box) return;
+
+    if (!statusState) {
+      box.textContent = "";
+      box.className = "form-status";
+      box.style.display = "none";
+      return;
+    }
+
+    box.textContent = translations[currentLang][statusState.key];
+    box.className = "form-status " + statusState.type;
+    box.style.display = "block";
+  }
 
   /* ================= LANGUAGE SWITCHER ================= */
 
@@ -99,112 +130,67 @@ errPhoneInvalid: "يرجى إدخال رقم هاتف صحيح (أرقام فق�
     document.documentElement.lang = t.lang;
     document.documentElement.dir = t.dir;
 
-    $("langLabel").textContent = t.switchLabel;
-    $("eventTitle").textContent = t.title;
-    $("eventPlace").textContent = t.place;
-    $("eventDateText").textContent = t.dateText;
-    $("eventTimeText").textContent = t.timeText;
-    $("startsInHeading").textContent = t.startsIn;
-    $("daysLabel").textContent = t.days;
-    $("hoursLabel").textContent = t.hours;
-    $("minutesLabel").textContent = t.minutes;
-    $("secondsLabel").textContent = t.seconds;
-    $("startedMsg").textContent = t.started;
-    $("agendaHeading").textContent = t.agendaHeading;
-    $("locationHeading").textContent = t.locationHeading;
-    $("openMapLink").querySelector("span").textContent = t.openMap;
-    $("registerHeading").textContent = t.registerHeading;
-    $("labelName").textContent = t.nameLabel;
-    $("labelEmail").textContent = t.emailLabel;
-    $("labelPhone").textContent = t.phoneLabel;
-    $("labelCompany").textContent = t.companyLabel;
+    setText("langLabel", t.switchLabel);
+    setText("eventTitle", t.title);
+    setText("eventPlace", t.place);
+    setText("eventDateText", t.dateText);
+    setText("eventTimeText", t.timeText);
+    setText("startsInHeading", t.startsIn);
+    setText("daysLabel", t.days);
+    setText("hoursLabel", t.hours);
+    setText("minutesLabel", t.minutes);
+    setText("secondsLabel", t.seconds);
+    setText("startedMsg", t.started);
+    setText("agendaHeading", t.agendaHeading);
+    setText("locationHeading", t.locationHeading);
 
-    // Update button without losing its loading state
+    const mapSpan = $("openMapLink") && $("openMapLink").querySelector("span");
+    if (mapSpan) mapSpan.textContent = t.openMap;
+
+    setText("registerHeading", t.registerHeading);
+    setText("labelName", t.nameLabel);
+    setText("labelEmail", t.emailLabel);
+    setText("labelPhone", t.phoneLabel);
+    setText("labelCompany", t.companyLabel);
+
+    // Do not overwrite the "Sending..." text while a request is in progress
     const submitBtn = $("submitBtn");
-
-    if (!submitBtn.disabled) {
+    if (submitBtn && !submitBtn.disabled) {
       submitBtn.textContent = t.submitBtn;
     }
 
-    // Update countdown immediately
-    updateCountdown();
+    renderErrors();
+    renderStatus();
   }
 
-  $("langToggle").addEventListener("click", () => {
-    applyLanguage(currentLang === "en" ? "ar" : "en");
-  });
-
-  // /* ================= COUNTDOWN ================= */
-
-  // function updateCountdown() {
-  //   const diff = EVENT_TIMESTAMP - Date.now();
-
-  //   const grid = $("countdownGrid");
-  //   const startedMsg = $("startedMsg");
-
-  //   if (diff <= 0) {
-  //     grid.style.display = "none";
-  //     startedMsg.style.display = "block";
-  //     return;
-  //   }
-
-  //   grid.style.display = "grid";
-  //   startedMsg.style.display = "none";
-
-  //   const seconds = Math.floor(diff / 1000);
-
-  //   const days = Math.floor(seconds / 86400);
-  //   const hours = Math.floor((seconds % 86400) / 3600);
-  //   const minutes = Math.floor((seconds % 3600) / 60);
-  //   const remainingSeconds = seconds % 60;
-
-  //   $("daysVal").textContent = String(days).padStart(2, "0");
-  //   $("hoursVal").textContent = String(hours).padStart(2, "0");
-  //   $("minutesVal").textContent = String(minutes).padStart(2, "0");
-  //   $("secondsVal").textContent = String(remainingSeconds).padStart(2, "0");
-  // }
-
-  // updateCountdown();
-  // setInterval(updateCountdown, 1000);
-
-  // /* ================= FORM SUBMISSION ================= */
-
-  /* ================= FORM SUBMISSION ================= */
-
-  const OUTBOX_KEY = "reg_outbox";
-
-  function readOutbox() {
-    try {
-      return JSON.parse(localStorage.getItem(OUTBOX_KEY)) || [];
-    } catch {
-      return [];
-    }
+  const langToggle = $("langToggle");
+  if (langToggle) {
+    langToggle.addEventListener("click", () => {
+      applyLanguage(currentLang === "en" ? "ar" : "en");
+    });
   }
 
-  function writeOutbox(list) {
-    try {
-      localStorage.setItem(OUTBOX_KEY, JSON.stringify(list));
-    } catch {}
-  }
+  /* ================= SENDING ================= */
 
-  async function sendRegistration(payload, timeoutMs = 20000) {
+  async function sendRegistration(payload, timeoutMs = SEND_TIMEOUT_MS) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const res = await fetch(ENDPOINT, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
+        // text/plain avoids a CORS preflight, which Apps Script does not handle
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
-        keepalive: true, // request survives tab close / navigation
         signal: controller.signal
       });
 
       const data = await res.json().catch(() => ({}));
-      return res.ok && String(data.success) !== "false";
+      if (data.success !== true) {
+        console.error("Apps Script rejected the request:", res.status, data);
+        return false;
+      }
+      return true;
     } catch (err) {
       console.error("Registration error:", err);
       return false;
@@ -213,42 +199,18 @@ errPhoneInvalid: "يرجى إدخال رقم هاتف صحيح (أرقام فق�
     }
   }
 
-  let flushing = false;
+  // Remove the old background outbox from earlier versions of this script
+  try {
+    localStorage.removeItem("reg_outbox");
+  } catch {}
 
-  async function flushOutbox() {
-    if (flushing) return;
-    flushing = true;
+  /* ================= PHONE HELPERS ================= */
 
-    try {
-      const pending = readOutbox();
-      if (!pending.length) return;
-
-      const failedIds = new Set();
-
-      for (const item of pending) {
-        const ok = await sendRegistration(item.payload);
-        if (!ok) failedIds.add(item.id);
-      }
-
-      // Re-read so registrations added during the flush are not lost
-      writeOutbox(
-        readOutbox().filter((item) => {
-          const wasSent = pending.some((p) => p.id === item.id) && !failedIds.has(item.id);
-          return !wasSent;
-        })
-      );
-    } finally {
-      flushing = false;
-    }
-  }
-
-  window.addEventListener("online", flushOutbox);
-  flushOutbox(); // retry anything that failed earlier
   // Converts Arabic-Indic (٠١٢...) and Persian (۰۱۲...) digits to 0-9
   function normalizeDigits(str) {
     return str
       .replace(/[\u0660-\u0669]/g, (d) => d.charCodeAt(0) - 0x0660)
-      .replace(/[\u06F0-\u06F9]/g, (d) => d.charCodeAt(0) - 0x06F0);
+      .replace(/[\u06F0-\u06F9]/g, (d) => d.charCodeAt(0) - 0x06f0);
   }
 
   // Returns the cleaned number, or null if it is not a valid phone number
@@ -258,98 +220,87 @@ errPhoneInvalid: "يرجى إدخال رقم هاتف صحيح (أرقام فق�
   }
 
   // Block letters while typing (allows digits, +, spaces, - ( ) .)
-  $("phone").addEventListener("input", (e) => {
-    let v = normalizeDigits(e.target.value).replace(/[^\d+\s\-().]/g, "");
-    v = v.replace(/(?!^)\+/g, ""); // "+" only allowed at the start
-    if (v !== e.target.value) e.target.value = v;
-  });
+  const phoneField = $("phone");
+  if (phoneField) {
+    phoneField.addEventListener("input", (e) => {
+      let v = normalizeDigits(e.target.value).replace(/[^\d+\s\-().]/g, "");
+      v = v.replace(/(?!^)\+/g, ""); // "+" only allowed at the start
+      if (v !== e.target.value) e.target.value = v;
+    });
+  }
+
+  /* ================= FORM SUBMISSION ================= */
 
   const form = $("registrationForm");
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  let sending = false;
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (sending) return;
 
-    const t = translations[currentLang];
+      const t = translations[currentLang];
 
-    const nameInput = $("fullName");
-    const emailInput = $("email");
-    const phoneInput = $("phone");
-    const companyInput = $("company");
+      const name = $("fullName").value.trim();
+      const email = $("email").value.trim();
+      const phoneRaw = $("phone").value.trim();
+      const company = $("company").value.trim();
+      const phoneClean = parsePhone(phoneRaw);
 
-    const errName = $("errName");
-    const errEmail = $("errEmail");
-    const errPhone = $("errPhone");
-    const statusBox = $("formStatus");
+      // Validate
+      errorKeys.name = null;
+      errorKeys.email = null;
+      errorKeys.phone = null;
+      statusState = null;
 
-    // Clear previous errors
-    errName.textContent = "";
-    errEmail.textContent = "";
-    errPhone.textContent = "";
+      if (!name) errorKeys.name = "errName";
+      if (!emailRegex.test(email)) errorKeys.email = "errEmail";
+      if (!phoneRaw) errorKeys.phone = "errPhone";
+      else if (!phoneClean) errorKeys.phone = "errPhoneInvalid";
 
-    statusBox.textContent = "";
-    statusBox.className = "form-status";
-    statusBox.style.display = "none";
+      renderErrors();
+      renderStatus();
 
-    // Validate inputs
-    let valid = true;
+      if (errorKeys.name || errorKeys.email || errorKeys.phone) return;
 
-       const phoneClean = parsePhone(phoneInput.value);
+      // Event details are built from the config so they can never drift
+      const en = translations.en;
+      const payload = {
+        "Full Name": name,
+        "Email": email,
+        "Phone": phoneClean,
+        "Company": company || "-",
+        "Event": `${en.title} – ${en.dateText} – ${en.timeText} – ${en.place}`
+      };
 
-    if (!phoneInput.value.trim()) {
-      errPhone.textContent = t.errPhone;
-      valid = false;
-    } else if (!phoneClean) {
-      errPhone.textContent = t.errPhoneInvalid;
-      valid = false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(emailInput.value.trim())) {
-      errEmail.textContent = t.errEmail;
-      valid = false;
-    }
-
-    if (!phoneInput.value.trim()) {
-      errPhone.textContent = t.errPhone;
-      valid = false;
-    }
-
-    if (!valid) return;
-
-    const payload = {
-      "Full Name": nameInput.value.trim(),
-      "Email": emailInput.value.trim(),
-      "Phone": phoneInput.value.trim(),
-      "Company": companyInput.value.trim() || "-",
-      "Event": "50 years – Sunday, November 29, 2026 – 12:00 PM – Triumph hotel",
-      _subject: EMAIL_SUBJECT,
-      _captcha: "false",
-      _honey: "" // honeypot: bots that fill this get ignored
-    };
-
-    // 1. Save first so the registration can't be lost
-    const id = Date.now() + "-" + Math.random().toString(36).slice(2);
-    writeOutbox([...readOutbox(), { id, payload }]);
-
-    // 2. Instant feedback (no waiting on the email server)
-    statusBox.textContent = t.successMsg;
-    statusBox.className = "form-status success";
-    statusBox.style.display = "block";
-    form.reset();
-
-    // 3. Send in the background
-    sendRegistration(payload).then((ok) => {
-      if (ok) {
-        writeOutbox(readOutbox().filter((item) => item.id !== id));
+      // Send and wait for the real result
+      const submitBtn = $("submitBtn");
+      sending = true;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = t.submittingBtn;
       }
-      // If it failed, it stays in the outbox and retries on the next
-      // page load or when the connection comes back.
+
+      const ok = await sendRegistration(payload);
+
+      sending = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = translations[currentLang].submitBtn;
+      }
+
+      if (ok) {
+        statusState = { key: "successMsg", type: "success" };
+        form.reset(); // only clear the form when the email was really sent
+      } else {
+        statusState = { key: "failMsg", type: "error" }; // keep the data so the user can retry
+      }
+      renderStatus();
     });
-  });
+  }
 
   /* ================= INITIALIZATION ================= */
 
   applyLanguage("en");
-
 })();
