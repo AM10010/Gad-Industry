@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>50 Years | Register — Dopave</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://formsubmit.co" crossorigin>
+<link rel="dns-prefetch" href="https://formsubmit.co">
+</head>
+<body class="event-body">
+  <div class="event-bg" style="background-image: url('images/event-blue-background.jpg');"></div>
+
+  <main class="event-container">
+    <!-- Top Bar with Language Switcher -->
+    <header class="event-header">
+      <button id="langToggle" class="lang-btn" type="button" aria-label="Switch language">
+        <span class="lang-icon">&#127760;</span>
+        <span id="langLabel">العربية</span>
+      </button>
+    </header>
+
+    <!-- Event Hero Info -->
+    <section class="event-card hero-card">
+      <h1 id="eventTitle" class="event-title">50 years</h1>
+      <p id="eventPlace" class="event-subtitle">Triumph hotel</p>
+
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-icon">&#128197;</span>
+          <span id="eventDateText">Sunday, November 29, 2026</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-icon">&#128338;</span>
+          <span id="eventTimeText">12:00 PM (Cairo Time)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Countdown Timer -->
+    <!-- <section class="event-card countdown-card">
+      <h2 id="startsInHeading" class="section-heading">Event starts in</h2>
+      <div id="countdownGrid" class="countdown-grid">
+        <div class="countdown-box">
+          <span id="daysVal" class="countdown-num">00</span>
+          <span id="daysLabel" class="countdown-label">Days</span>
+        </div>
+        <div class="countdown-box">
+          <span id="hoursVal" class="countdown-num">00</span>
+          <span id="hoursLabel" class="countdown-label">Hours</span>
+        </div>
+        <div class="countdown-box">
+          <span id="minutesVal" class="countdown-num">00</span>
+          <span id="minutesLabel" class="countdown-label">Minutes</span>
+        </div>
+        <div class="countdown-box">
+          <span id="secondsVal" class="countdown-num">00</span>
+          <span id="secondsLabel" class="countdown-label">Seconds</span>
+        </div>
+      </div>
+      <p id="startedMsg" class="started-msg" style="display: none;">The event has started.</p>
+    </section> -->
+
+    <!-- Seminar Agenda -->
+    <section class="event-card agenda-card">
+      <h2 id="agendaHeading" class="section-heading">Seminar Agenda</h2>
+      <div class="agenda-image-wrap">
+        <img
+          src="images/Seminar.jpg"
+          alt="Seminar Agenda"
+          class="agenda-image"
+        />
+      </div>
+    </section>
+
+    <!-- Location & Google Map -->
+    <section class="event-card map-card">
+      <h2 id="locationHeading" class="section-heading">Location</h2>
+      <div class="map-wrap">
+        <iframe
+          src="https://www.google.com/maps?q=Triumph+Luxury+Hotel,+Giza,+Egypt&output=embed"
+          class="map-frame"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Event location map"
+        ></iframe>
+      </div>
+      <a
+        id="openMapLink"
+        href="https://maps.app.goo.gl/Mg38ymGLDJtvVX1c9?g_st=iw"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="map-external-link"
+      >
+        <span>Open in Google Maps</span>
+        <span aria-hidden="true">&nearr;</span>
+      </a>
+    </section>
+
+    <!-- Registration Form -->
+    <section class="event-card form-card">
+      <h2 id="registerHeading" class="section-heading">Register</h2>
+      <form id="registrationForm" novalidate>
+        <div class="form-group">
+          <label id="labelName" for="fullName">Full name *</label>
+          <input type="text" id="fullName" name="fullName" required />
+          <span id="errName" class="form-error"></span>
+        </div>
+
+        <div class="form-group">
+          <label id="labelEmail" for="email">Email *</label>
+          <input type="email" id="email" name="email" required />
+          <span id="errEmail" class="form-error"></span>
+        </div>
+
+        <div class="form-group">
+          <label id="labelPhone" for="phone">Phone *</label>
+          <input type="tel" id="phone" name="phone" required />
+          <span id="errPhone" class="form-error"></span>
+        </div>
+
+        <div class="form-group">
+          <label id="labelCompany" for="company">Company (optional)</label>
+          <input type="text" id="company" name="company" />
+        </div>
+
+        <button id="submitBtn" type="submit" class="submit-btn">
+          Register
+        </button>
+
+        <div id="formStatus" class="form-status" role="alert"></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
