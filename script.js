@@ -2,7 +2,7 @@
 (function () {
   /* ================= CONFIG ================= */
 
-  const RECEIVER_EMAIL = "mabanoub826@gmail.com";
+  const RECEIVER_EMAIL = "mirette.antoine@artbox-studios.com";
   const EMAIL_SUBJECT = "New registration – 50 years event";
 
   // November 29, 2026, 12:00 PM Cairo winter time (UTC+2)
