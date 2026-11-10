@@ -23,7 +23,7 @@
       place: "trump hotel",
       dateText: "Sunday, November 29, 2026",
       timeText: "12:00 PM (Cairo Time)",
-      startsIn: "Event starts in",
+      startsIn: " starts in",
       days: "Days",
       hours: "Hours",
       minutes: "Minutes",
@@ -322,7 +322,7 @@ errPhoneInvalid: "يرجى إدخال رقم هاتف صحيح (أرقام فق�
       "Email": emailInput.value.trim(),
       "Phone": phoneInput.value.trim(),
       "Company": companyInput.value.trim() || "-",
-      "Event": "50 years – Friday, November 27, 2026 – 12:00 PM – trump hotel",
+      "Event": "50 years – Sunday, November 29, 2026 – 12:00 PM – Triumph hotel",
       _subject: EMAIL_SUBJECT,
       _captcha: "false",
       _honey: "" // honeypot: bots that fill this get ignored
