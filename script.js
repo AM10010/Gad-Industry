@@ -20,7 +20,7 @@
       dir: "ltr",
       switchLabel: "العربية",
       title: "50 years",
-      place: "trump hotel",
+      place: "Triumph hotel",
       dateText: "Sunday, November 29, 2026",
       timeText: "12:00 PM (Cairo Time)",
       startsIn: " starts in",
